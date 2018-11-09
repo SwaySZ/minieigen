@@ -35,7 +35,7 @@ class MatrixBaseVisitor: public py::def_visitor<MatrixBaseVisitor<MatrixBaseT> >
 		;
 		// reductions only meaningful for non-complex matrices (e.g. maxCoeff, minCoeff)
 		visit_reductions_noncomplex<Scalar,PyClass>(cl);
-		
+
 	};
 	private:
 	template<class PyClass> static string name(PyClass& cl){ return py::extract<string>(cl.attr("__name__"))(); }
@@ -120,7 +120,7 @@ class MatrixBaseVisitor: public py::def_visitor<MatrixBaseVisitor<MatrixBaseT> >
 	// hence two versions
 	template<typename Scalar> static bool prune_element(const Scalar& num, RealScalar absTol, typename boost::disable_if_c<Eigen::NumTraits<Scalar>::IsComplex >::type* dummy=0){ return std::abs(num)<=absTol || num!=-0; }
 	template<typename Scalar> static bool prune_element(const Scalar& num, RealScalar absTol, typename boost::enable_if_c<Eigen::NumTraits<Scalar>::IsComplex >::type* dummy=0){ return std::abs(num)<=absTol; }
-	
+
 	static MatrixBaseT pruned(const MatrixBaseT& a, double absTol=1e-6){ // typename MatrixBaseT::Scalar absTol=1e-6){
 		MatrixBaseT ret(MatrixBaseT::Zero(a.rows(),a.cols()));
 		for(Index c=0;c<a.cols();c++){ for(Index r=0;r<a.rows();r++){ if(!prune_element(a(c,r),absTol)) ret(c,r)=a(c,r); } }
@@ -213,7 +213,7 @@ class VectorVisitor: public py::def_visitor<VectorVisitor<VectorT> >{
 	static CompatVec2 Vec3_zx(const CompatVec3& v){ return CompatVec2(v[2],v[0]); }
 	static CompatVec2 Vec3_yz(const CompatVec3& v){ return CompatVec2(v[1],v[2]); }
 	static CompatVec2 Vec3_zy(const CompatVec3& v){ return CompatVec2(v[2],v[1]); }
-	
+
 	// 4-vector
 	template<typename VectorT2, class PyClass> static void visit_special_sizes(PyClass& cl, typename boost::enable_if_c<VectorT2::RowsAtCompileTime==4>::type* dummy=0){
 		cl
@@ -294,7 +294,9 @@ class MatrixVisitor: public py::def_visitor<MatrixVisitor<MatrixT> >{
 	friend class def_visitor_access;
 	typedef typename MatrixT::Scalar Scalar;
 	typedef typename Eigen::Matrix<Scalar,MatrixT::RowsAtCompileTime,1> CompatVectorT;
+  typedef Eigen::Matrix<Scalar,2,2> CompatMat2;
 	typedef Eigen::Matrix<Scalar,3,3> CompatMat3;
+	typedef Eigen::Matrix<Scalar,2,1> CompatVec2;
 	typedef Eigen::Matrix<Scalar,3,1> CompatVec3;
 	typedef Eigen::Matrix<Scalar,6,6> CompatMat6;
 	typedef Eigen::Matrix<Scalar,6,1> CompatVec6;
@@ -372,6 +374,16 @@ class MatrixVisitor: public py::def_visitor<MatrixVisitor<MatrixT> >{
 	}
 
 	// handle specific matrix sizes
+	// 2x2
+	template<typename MatT2, class PyClass> static void visit_special_sizes(PyClass& cl, typename boost::enable_if_c<MatT2::RowsAtCompileTime==2>::type* dummy=0){
+		cl
+		.def("__init__",py::make_constructor(&MatrixVisitor::Mat2_fromElements,py::default_call_policies(),(py::arg("m00"),py::arg("m01"),py::arg("m10"),py::arg("m11"))))
+		.def("__init__",py::make_constructor(&MatrixVisitor::Mat2_fromRows,py::default_call_policies(),(py::arg("r0"),py::arg("r1"),py::arg("cols")=false)))
+		;
+	}
+	static CompatMat2* Mat2_fromElements(const Scalar& m00, const Scalar& m01, const Scalar& m10, const Scalar& m11){ CompatMat2* m(new CompatMat2); (*m)<<m00,m01,m10,m11; return m; }
+	static CompatMat2* Mat2_fromRows(const CompatVec2& l0, const CompatVec2& l1, bool cols=false){ CompatMat2* m(new CompatMat2); if(cols){m->col(0)=l0; m->col(1)=l1; } else {m->row(0)=l0; m->row(1)=l1;} return m; }
+
 	// 3x3
 	template<typename MatT2, class PyClass> static void visit_special_sizes(PyClass& cl, typename boost::enable_if_c<MatT2::RowsAtCompileTime==3>::type* dummy=0){
 		cl
@@ -536,7 +548,7 @@ class AabbVisitor: public py::def_visitor<AabbVisitor<Box> >{
 		.def("contains",&AabbVisitor::containsPt)
 		.def("contains",&AabbVisitor::containsBox)
 		// for the "in" operator
-		.def("__contains__",&AabbVisitor::containsPt) 
+		.def("__contains__",&AabbVisitor::containsPt)
 		.def("__contains__",&AabbVisitor::containsBox)
 		.def("extend",&AabbVisitor::extendPt)
 		.def("extend",&AabbVisitor::extendBox)
@@ -545,7 +557,7 @@ class AabbVisitor: public py::def_visitor<AabbVisitor<Box> >{
 		.def("intersection",&Box::intersection)
 		.def("merged",&Box::merged)
 		// those return internal references, which is what we want
-		.add_property("min",py::make_function(&AabbVisitor::min,py::return_internal_reference<>())) 
+		.add_property("min",py::make_function(&AabbVisitor::min,py::return_internal_reference<>()))
 		.add_property("max",py::make_function(&AabbVisitor::max,py::return_internal_reference<>()))
 		.def("__len__",&AabbVisitor::len).staticmethod("__len__")
 		.def("__setitem__",&AabbVisitor::set_item).def("__getitem__",&AabbVisitor::get_item)
@@ -567,7 +579,7 @@ class AabbVisitor: public py::def_visitor<AabbVisitor<Box> >{
 		static py::tuple getinitargs(const Box& x){ return py::make_tuple(x.min(),x.max()); }
 	};
 	static Index len(){ return 2; }
-	// getters and setters 
+	// getters and setters
 	static Scalar get_item(const Box& self, py::tuple _idx){ Index idx[2]; Index mx[2]={2,Box::AmbientDimAtCompileTime}; IDX2_CHECKED_TUPLE_INTS(_idx,mx,idx); if(idx[0]==0) return self.min()[idx[1]]; return self.max()[idx[1]]; }
 	static void set_item(Box& self, py::tuple _idx, Scalar value){ Index idx[2]; Index mx[2]={2,Box::AmbientDimAtCompileTime}; IDX2_CHECKED_TUPLE_INTS(_idx,mx,idx); if(idx[0]==0) self.min()[idx[1]]=value; else self.max()[idx[1]]=value; }
 	static VectorType get_minmax(const Box& self, Index idx){ IDX_CHECK(idx,2); if(idx==0) return self.min(); return self.max(); }
@@ -623,7 +635,7 @@ class QuaternionVisitor:  public py::def_visitor<QuaternionVisitor<QuaternionT> 
 		.def(py::self *= py::self)
 		.def(py::self * py::other<CompatVec3>())
 		.def("__eq__",&QuaternionVisitor::__eq__).def("__ne__",&QuaternionVisitor::__ne__)
-		.def("__sub__",&QuaternionVisitor::__sub__) 
+		.def("__sub__",&QuaternionVisitor::__sub__)
 		// specials
 		.def("__abs__",&QuaternionT::norm)
 		.def("__len__",&QuaternionVisitor::__len__).staticmethod("__len__")
@@ -661,4 +673,3 @@ class QuaternionVisitor:  public py::def_visitor<QuaternionVisitor<QuaternionT> 
 	}
 	static Index __len__(){return 4;}
 };
-

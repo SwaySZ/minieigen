@@ -1,5 +1,8 @@
 #include"visitors.hpp"
 void expose_matrices(){
+	py::class_<Matrix2r>("Matrix2","2x2 float matrix.\n\nSupported operations (``m`` is a Matrix2, ``f`` if a float/int, ``v`` is a Vector2): ``-m``, ``m+m``, ``m+=m``, ``m-m``, ``m-=m``, ``m*f``, ``f*m``, ``m*=f``, ``m/f``, ``m/=f``, ``m*m``, ``m*=m``, ``m*v``, ``v*m``, ``m==m``, ``m!=m``.\n\nStatic attributes: ``Zero``, ``Ones``, ``Identity``.",py::init<>())
+		.def(MatrixVisitor<Matrix2r>())
+	;
 	py::class_<Matrix3r>("Matrix3","3x3 float matrix.\n\nSupported operations (``m`` is a Matrix3, ``f`` if a float/int, ``v`` is a Vector3): ``-m``, ``m+m``, ``m+=m``, ``m-m``, ``m-=m``, ``m*f``, ``f*m``, ``m*=f``, ``m/f``, ``m/=f``, ``m*m``, ``m*=m``, ``m*v``, ``v*m``, ``m==m``, ``m!=m``.\n\nStatic attributes: ``Zero``, ``Ones``, ``Identity``.",py::init<>())
 		.def(py::init<Quaternionr const &>((py::arg("q"))))
 		.def(MatrixVisitor<Matrix3r>())

@@ -26,7 +26,10 @@ SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -fPIC")
 ADD_DEFINITIONS("-DEIGEN_DONT_VECTORIZE -DEIGEN_DONT_ALIGN -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT")
 
 #===========================================================
-
+#SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+#SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+SET(CMAKE_INSTALL_RPATH "$ORIGIN;")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 # Add possibility to use local boost installation (e.g. -DLocalBoost=1.46.1)
 #set(CMAKE_MODULE_PATH "/scratch/softwares/boostinstall/lib/;${CMAKE_MODULE_PATH}")
@@ -35,8 +38,8 @@ set(Boost_NO_SYSTEM_PATHS TRUE)
   #set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../3rdlib/boost167")
   set(BOOST_ROOT "/home/swayzhao/software/DEM/3rdlib/boost167")
   set(BOOST_INCLUDE_DIRS "${BOOST_ROOT}/include")
-  #set(BOOST_LIBRARY_DIRS "${BOOST_ROOT}/lib")
-  set(BOOST_LIBRARYDIR "/opt/SudoDEM/lib/3rdlibs/")
+  set(BOOST_LIBRARY_DIRS "${BOOST_ROOT}/lib")
+  #set(BOOST_LIBRARYDIR "/opt/SudoDEM/lib/3rdlibs/")
   #set(BOOST_LIBRARYDIR "$ORIGIN/../../../../../3rdlibs")
 
 #endif (Boost_NO_SYSTEM_PATHS)

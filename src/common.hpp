@@ -32,6 +32,7 @@ typedef Eigen::AlignedVector3<Real> Vector3ra;
 typedef Eigen::Matrix<Real,4,1> Vector4r;
 typedef Eigen::Matrix<int ,6,1> Vector6i;
 typedef Eigen::Matrix<Real,6,1> Vector6r;
+typedef Eigen::Matrix<Real,2,2> Matrix2r;
 typedef Eigen::Matrix<Real,3,3> Matrix3r;
 typedef Eigen::Matrix<Real,6,6> Matrix6r;
 
@@ -96,7 +97,7 @@ static inline string doubleToShortest(double d, int pad=0){
 	string ret(sb.Finalize());
 	if(pad==0 || (int)ret.size()>=pad) return ret;
 	return string(pad-ret.size(),' ')+ret; // left-padded if shorter
-} 
+}
 
 
 /* generic function to print numbers, via lexical_cast plus padding -- used for ints */
@@ -137,4 +138,3 @@ static inline void IDX_CHECK(Index i,Index MAX){ if(i<0 || i>=MAX) { PyErr_SetSt
 static inline void IDX2_CHECKED_TUPLE_INTS(py::tuple tuple,const Index max2[2], Index arr2[2]) {Index l=py::len(tuple); if(l!=2) { PyErr_SetString(PyExc_IndexError,"Index must be integer or a 2-tuple"); py::throw_error_already_set(); } for(int _i=0; _i<2; _i++) { py::extract<Index> val(tuple[_i]); if(!val.check()){ PyErr_SetString(PyExc_ValueError,("Unable to convert "+lexical_cast<string>(_i)+"-th index to integer.").c_str()); py::throw_error_already_set(); } Index v=val(); IDX_CHECK(v,max2[_i]); arr2[_i]=v; }  }
 
 static inline string object_class_name(const py::object& obj){ return py::extract<string>(obj.attr("__class__").attr("__name__"))(); }
-
