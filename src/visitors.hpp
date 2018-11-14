@@ -673,3 +673,57 @@ class QuaternionVisitor:  public py::def_visitor<QuaternionVisitor<QuaternionT> 
 	}
 	static Index __len__(){return 4;}
 };
+
+template<typename Rotation2DT>
+class Rotation2DVisitor:  public py::def_visitor<Rotation2DVisitor<Rotation2DT> >{
+	typedef typename Rotation2DT::Scalar Scalar;
+	typedef Eigen::Matrix<Scalar,2,1> CompatVec2;
+	typedef Eigen::Matrix<Scalar,2,2> CompatMat2;
+	public:
+	template<class PyClass>
+	void visit(PyClass& cl) const {
+		cl
+		.def(py::init<>("Default constructor"))
+		.def(py::init<Scalar>())//,"Initialize from a rotation angle."))
+		.def(py::init<CompatMat2>()) //,"Initialize from given rotation matrix.")
+		.def(py::init<Rotation2DT>())
+		.def_pickle(Rotation2DPickle())
+		// properties
+		.add_static_property("Identity",&Rotation2DVisitor::Identity)
+		.add_property("angle",
+                    (Scalar (Rotation2DT::*)()const)&Rotation2DT::angle,
+                    &Rotation2DVisitor::setAngle,"The rotation angle.")
+		// methods
+		.def("inverse",&Rotation2DT::inverse)
+		.def("toRotationMatrix",&Rotation2DT::toRotationMatrix,"Constructs and returns an equivalent 2x2 rotation matrix.")
+		.def("smallestAngle",&Rotation2DT::smallestAngle) //the rotation angle in [-pi,pi]
+		.def("smallestPositiveAngle",&Rotation2DT::smallestPositiveAngle) //the rotation angle in [0,2pi]
+		.def("slerp",&Rotation2DVisitor::slerp,(py::arg("t"),py::arg("other")))
+		// operators
+		.def(py::self * py::self)
+		.def(py::self *= py::self)
+		.def(py::self * py::other<CompatVec2>())
+		.def("__eq__",&Rotation2DVisitor::__eq__).def("__ne__",&Rotation2DVisitor::__ne__)
+		//.def("__sub__",&Rotation2DVisitor::__sub__)
+		// specials
+		//.def("__abs__",&Rotation2DT::norm)
+		//.def("__len__",&Rotation2DVisitor::__len__).staticmethod("__len__")
+		//.def("__setitem__",&Rotation2DVisitor::__setitem__).def("__getitem__",&Rotation2DVisitor::__getitem__)
+		.def("__str__",&Rotation2DVisitor::__str__).def("__repr__",&Rotation2DVisitor::__str__)
+		;
+	}
+	private:
+	// those must be wrapped since "other" is declared as Rotation2DBase<OtherDerived>; the type is then not inferred when using .def
+	static Rotation2DT slerp(const Rotation2DT& self, const Real& t, const Rotation2DT& other){ return self.slerp(t,other); }
+	struct Rotation2DPickle: py::pickle_suite{static py::tuple getinitargs(const Rotation2DT& x){ return py::make_tuple(x.angle());} };
+	static Rotation2DT Identity(){ return Rotation2DT::Identity(); }
+	static void setAngle( Rotation2DT & self, const Scalar & angle)
+    { self.angle() = angle; }
+	static bool __eq__(const Rotation2DT& u, const Rotation2DT& v){ return u.angle() == v.angle(); }//this is for checking exact equility.
+	static bool __ne__(const Rotation2DT& u, const Rotation2DT& v){ return !__eq__(u,v); }
+	static string __str__(const py::object& obj){
+		const Rotation2DT& self=py::extract<Rotation2DT>(obj)();
+		return string(object_class_name(obj)+"(")+num_to_string(self.angle())+")";
+	}
+	static Index __len__(){return 1;}
+};

@@ -40,6 +40,7 @@ typedef Eigen::Matrix<Real,Eigen::Dynamic,Eigen::Dynamic> MatrixXr;
 typedef Eigen::Matrix<Real,Eigen::Dynamic,1> VectorXr;
 
 typedef Eigen::Quaternion<Real> Quaternionr;
+typedef Eigen::Rotation2D<Real> Rotationr;
 typedef Eigen::AngleAxis<Real> AngleAxisr;
 typedef Eigen::AlignedBox<Real,3> AlignedBox3r;
 typedef Eigen::AlignedBox<Real,2> AlignedBox2r;
