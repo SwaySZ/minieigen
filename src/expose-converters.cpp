@@ -10,6 +10,7 @@ void expose_converters(){
 	custom_alignedBoxNr_from_seq<2>();
 	custom_alignedBoxNr_from_seq<3>();
 	custom_Quaternionr_from_axisAngle_or_angleAxis();
+  //custom_Rotationr_from_Real();
 
 	custom_MatrixAnyAny_from_sequence<Matrix2r>();
 	custom_MatrixAnyAny_from_sequence<Matrix3r>();

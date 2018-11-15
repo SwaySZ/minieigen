@@ -143,5 +143,22 @@ struct custom_Quaternionr_from_axisAngle_or_angleAxis{
 	}
 };
 
-
-
+/*
+struct custom_Rotationr_from_Real{//not need for this converter
+	custom_Rotationr_from_Real(){
+		boost::python::converter::registry::push_back(&convertible,&construct,boost::python::type_id<Rotationr>());
+	}
+	static void* convertible(PyObject* obj_ptr){
+		if(!PySequence_Check(obj_ptr)) return 0;
+		if(PySequence_Size(obj_ptr)!=1) return 0;
+		py::object a(py::handle<>(PySequence_GetItem(obj_ptr,0)));
+		return py::extract<Real>(a).check() ? obj_ptr : 0;
+	}
+	static void construct(PyObject* obj_ptr, boost::python::converter::rvalue_from_python_stage1_data* data){
+		void* storage=((boost::python::converter::rvalue_from_python_storage<Rotationr>*)(data))->storage.bytes;
+		py::object a(py::handle<>(PySequence_GetItem(obj_ptr,0)));
+		if(py::extract<Real>(py::object(a)).check()) new (storage) Rotationr(py::extract<Real>(a)());
+		data->convertible=storage;
+	}
+};
+*/
