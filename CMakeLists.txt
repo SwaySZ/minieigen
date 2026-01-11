@@ -40,7 +40,7 @@ set(Boost_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../HeaderLib")
 list(APPEND CMAKE_PREFIX_PATH "${Boost_ROOT}")
 
 # Force CONFIG mode to ensure it finds the boost_system-config.cmake files
-find_package(Boost REQUIRED CONFIG COMPONENTS ${BOOST_PY_COMPONENT} system)
+find_package(Boost REQUIRED CONFIG COMPONENTS ${BOOST_PY_COMPONENT})
 
 # 5. Set Eigen3 paths
 set(EIGEN3_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../Eigen-3.3.5")
