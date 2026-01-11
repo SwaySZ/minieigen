@@ -10,29 +10,39 @@ SET(DCSRC
     "double-conversion/strtod.cc"
 )
 
-# Use GLOB carefully; it is better to list files explicitly, but keeping your logic:
+# Explicitly list source files for predictability (preferred over GLOB)
 FILE(GLOB_RECURSE SRC_minieigen "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
 # 2. Create the library
-# Note: For Python modules, 'MODULE' is often preferred over 'SHARED' 
-# to prevent other C++ projects from linking against it.
-ADD_LIBRARY(minieigen SHARED ${SRC_minieigen} ${DCSRC})
+# Python modules should typically be 'MODULE' (loadable at runtime)
+ADD_LIBRARY(minieigen MODULE ${SRC_minieigen} ${DCSRC})
 
-# 3. Modern target properties
+# 3. Target properties
 SET_TARGET_PROPERTIES(minieigen PROPERTIES 
     OUTPUT_NAME minieigen 
     PREFIX "" 
+    # Ensure the suffix matches what Python expects (e.g., .so or .pyd)
+    SUFFIX "${Python3_SOSUFFIX}"
     # Use $ORIGIN to allow the module to find shrunken Boost libs in ../lib/
     INSTALL_RPATH "$ORIGIN/../"
 )
 
-# 4. Modern Linking (Uses the variables from your top-level CMakeLists)
-# This handles python310 or python312 based on what was found.
+# 4. Modern Target Linking
+# In Boost Config mode, targets are typically named Boost::<component>
+# Boost::headers (or Boost::boost) provides the necessary include paths automatically.
 TARGET_LINK_LIBRARIES(minieigen PRIVATE 
     Boost::${BOOST_PY_COMPONENT} 
     Boost::system
+    Boost::headers
     Python3::Python
 )
 
-# 5. Install to the directory defined in the top-level script
+# 5. Target Include Directories
+# target_link_libraries handles most includes, but we add Eigen and local dirs here.
+TARGET_INCLUDE_DIRECTORIES(minieigen PRIVATE 
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${EIGEN3_INCLUDE_DIR}"
+)
+
+# 6. Install to the directory defined in the top-level script
 INSTALL(TARGETS minieigen DESTINATION ${LIBRARY_OUTPUT_PATH})
