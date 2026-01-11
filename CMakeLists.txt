@@ -1,72 +1,57 @@
 PROJECT(minieigen CXX)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-set(Python_ADDITIONAL_VERSIONS 2.7)
+# Updated to 3.12 for modern FindPython3 support
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
+
+# 1. Find the active Python (3.10, 3.12, etc.)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+
+# 2. Dynamically determine the Boost Python component name (e.g., python310 or python312)
+string(REPLACE "." "" BOOST_PY_SUFFIX ${Python3_VERSION_MINOR})
+set(BOOST_PY_COMPONENT "python3${BOOST_PY_SUFFIX}")
 
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cMake")
 
-
+# GCC Specific optimization flags
 EXECUTE_PROCESS(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
 IF (GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
-  MESSAGE(STATUS "GCC Version >= 4.8. Adding -ftrack-macro-expansion=0 and -save-temps")
   SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -ftrack-macro-expansion=0 -save-temps")
 ENDIF()
 
-#===========================================================
-
+# Clang Specific flags
 IF ("${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ARG1}" MATCHES ".*clang")
   SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -ftemplate-depth-512")
 ENDIF()
 
-#===========================================================
-
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -fPIC")
-#SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g")#sway
-
-
 ADD_DEFINITIONS("-DEIGEN_DONT_VECTORIZE -DEIGEN_DONT_ALIGN -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT")
 
-#===========================================================
-#SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-#SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+# RPATH Settings
 SET(CMAKE_INSTALL_RPATH "$ORIGIN;")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
-# Add possibility to use local boost installation (e.g. -DLocalBoost=1.46.1)
+# 3. Configure Boost to use your shrunken/local installation
 set(Boost_NO_SYSTEM_PATHS TRUE)
-#if (Boost_NO_SYSTEM_PATHS)
-  set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../HeaderLib")
-  set(BOOST_INCLUDE_DIRS "${BOOST_ROOT}/include")
-  set(BOOST_LIBRARY_DIRS "${BOOST_ROOT}/lib")
-  #set(BOOST_LIBRARYDIR "/opt/SudoDEM/lib/3rdlibs/")
-  #set(BOOST_LIBRARYDIR "$ORIGIN/../../../../../3rdlibs")
+set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../HeaderLib")
+# Note: Modern FindBoost uses BOOST_ROOT to find includes and libs automatically
 
-#endif (Boost_NO_SYSTEM_PATHS)
-FIND_PACKAGE(Boost 1.67 COMPONENTS python27 system REQUIRED)
+find_package(Boost REQUIRED COMPONENTS ${BOOST_PY_COMPONENT} system)
 
-INCLUDE_DIRECTORIES (${Boost_INCLUDE_DIRS})
-#LINK_DIRECTORIES( ${BOOST_LIBRARYDIR} )
-# for checking purpose
-MESSAGE("--   Boost_VERSION: " ${Boost_VERSION})
-MESSAGE("--   Boost_LIB_VERSION: " ${Boost_LIB_VERSION})
-MESSAGE("--   BOOST_LIBRARYDIR: " ${BOOST_LIBRARYDIR})
-MESSAGE("--   Boost_INCLUDE_DIRS: " ${Boost_INCLUDE_DIRS})
-MESSAGE("--   Boost_LIBRARIES: " ${Boost_LIBRARIES})
-#FIND_PACKAGE(Boost COMPONENTS system python REQUIRED)
-FIND_PACKAGE(PythonInterp REQUIRED)
-#FIND_PACKAGE(Eigen3 REQUIRED)
-
+# 4. Set Eigen3 paths
 set(EIGEN3_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../Eigen-3.3.5")
-INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
-MESSAGE(STATUS "Found Eigen3, at: ${EIGEN3_INCLUDE_DIR}")
 
-IF(NOT LIBRARY_OUTPUT_PATH)   #For packaging
+# 5. Output configurations for debugging
+MESSAGE(STATUS "Found Python: ${Python3_VERSION} (Suffix: ${BOOST_PY_SUFFIX})")
+MESSAGE(STATUS "Using Boost Component: ${BOOST_PY_COMPONENT}")
+MESSAGE(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
+MESSAGE(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
+
+# Include directories (Standard for non-target-based dependencies)
+INCLUDE_DIRECTORIES(${Python3_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
+
+IF(NOT LIBRARY_OUTPUT_PATH)
   SET (LIBRARY_OUTPUT_PATH "lib")
-ENDIF(NOT LIBRARY_OUTPUT_PATH)   #For packaging
-
-MESSAGE(STATUS "Library output path is: ${LIBRARY_OUTPUT_PATH}")
-
-INCLUDE(FindPythonLibs)
-INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
-INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
+ENDIF()
 
 ADD_SUBDIRECTORY("${CMAKE_SOURCE_DIR}/src")
