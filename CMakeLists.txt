@@ -32,6 +32,8 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 # 3. Configure Boost to use your shrunken/local installation
 set(Boost_NO_SYSTEM_PATHS TRUE)
 set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../HeaderLib")
+# It tells CMake where to look for boost_system-config.cmake and boost_python-config.cmake
+list(APPEND CMAKE_PREFIX_PATH "${BOOST_ROOT}")
 # Note: Modern FindBoost uses BOOST_ROOT to find includes and libs automatically
 
 find_package(Boost REQUIRED COMPONENTS ${BOOST_PY_COMPONENT} system)
