@@ -32,7 +32,6 @@ SET_TARGET_PROPERTIES(minieigen PROPERTIES
 # Boost::headers (or Boost::boost) provides the necessary include paths automatically.
 TARGET_LINK_LIBRARIES(minieigen PRIVATE 
     Boost::${BOOST_PY_COMPONENT} 
-    Boost::system
     Boost::headers
     Python3::Python
 )
